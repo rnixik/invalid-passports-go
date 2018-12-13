@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -35,12 +34,12 @@ func validityHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(invalidPassports) < 1 {
+	if database.recordsNumber == 0 {
 		errorHandlerInternalServerError(w, "Database is not ready")
 		return
 	}
 
-	found, err := isInDatabase(&invalidPassports, series, number)
+	found, err := database.exists(series, number)
 	if err != nil {
 		errorHandlerInternalServerError(w, err.Error())
 		return
@@ -49,36 +48,14 @@ func validityHandler(w http.ResponseWriter, r *http.Request) {
 	writeValidityResult(w, !found)
 }
 
-func updateDataHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if updatingInProcess {
-		_, err := fmt.Fprintf(w, "{\"result\":\"already_in_process\"}")
-		if err != nil {
-			log.Println(err)
-		}
-		return
-	}
-	added := parseSourceFile(invalidPassportsSourcePath)
-	_, err := fmt.Fprintf(w, "{\"result\":\"ok\",\"added\":%d}", added)
-	if err != nil {
-		log.Println(err)
-	}
-}
-
 func errorHandlerBadRequest(w http.ResponseWriter, errorMessage string) {
 	w.WriteHeader(http.StatusBadRequest)
-	_, err := fmt.Fprintf(w, "{\"error\":\"%s\"}", errorMessage)
-	if err != nil {
-		log.Println(err)
-	}
+	_, _ = fmt.Fprintf(w, "{\"error\":\"%s\"}", errorMessage)
 }
 
 func errorHandlerInternalServerError(w http.ResponseWriter, errorMessage string) {
 	w.WriteHeader(http.StatusInternalServerError)
-	_, err := fmt.Fprintf(w, "{\"error\":\"%s\"}", errorMessage)
-	if err != nil {
-		log.Println(err)
-	}
+	_, _ = fmt.Fprintf(w, "{\"error\":\"%s\"}", errorMessage)
 }
 
 func writeValidityResult(w http.ResponseWriter, isValid bool) {
@@ -86,8 +63,5 @@ func writeValidityResult(w http.ResponseWriter, isValid bool) {
 	if !isValid {
 		validStr = "invalid"
 	}
-	_, err := fmt.Fprintf(w, "{\"result\":\"%s\"}", validStr)
-	if err != nil {
-		log.Println(err)
-	}
+	_, _ = fmt.Fprintf(w, "{\"result\":\"%s\"}", validStr)
 }

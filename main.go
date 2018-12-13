@@ -9,9 +9,8 @@ import (
 	"syscall"
 )
 
+var database *Database
 var invalidPassportsSourcePath string
-
-var invalidPassports map[uint16]map[uint32]bool
 
 func main() {
 	var addr = flag.String("addr", ":8002", "http service address")
@@ -24,13 +23,18 @@ func main() {
 
 	bindSignal()
 
-	invalidPassports = make(map[uint16]map[uint32]bool)
-	parseSourceFile(invalidPassportsSourcePath)
+	database = NewDataBase()
+
+	err := parseSourceFile(database, invalidPassportsSourcePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Records in database: %d", database.recordsNumber)
 
 	http.HandleFunc("/", validityHandler)
-	http.HandleFunc("/update-data", updateDataHandler)
 
-	err := http.ListenAndServe(*addr, nil)
+	err = http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
@@ -41,14 +45,18 @@ func bindSignal() {
 	signal.Notify(signalsChannel, syscall.SIGUSR1)
 
 	go func() {
-		sig := <-signalsChannel
-		if sig == syscall.SIGUSR1 {
-			log.Println("Received signal to update DB")
+		for {
+			sig := <-signalsChannel
+			if sig == syscall.SIGUSR1 {
+				log.Println("Received signal to update DB")
 
-			if updatingInProcess {
-				log.Println("Already updating")
-			} else {
-				parseSourceFile(invalidPassportsSourcePath)
+				err := parseSourceFile(database, invalidPassportsSourcePath)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+
+				log.Printf("Records in database: %d", database.recordsNumber)
 			}
 		}
 	}()

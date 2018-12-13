@@ -29,14 +29,16 @@ Where `SERIES` is 4  digits, `NUMBER` is 6 digits of passport.
 
 * curl
 * bzip2
-* 4GB RAM minimum
+* 7GB RAM minimum
 
 #### Development:
 
 * curl
 * bzip2
-* 4GB RAM minimum
 * go
+* 7GB RAM minimum
+
+It consumes double amount of RAM to be able work while updating.
 
 ### How to start:
 
@@ -50,6 +52,9 @@ go build .
 `./update-db.sh`
 
 Should be added to cron.
+It does following:
+* Download and extract archive with csv to /tmp/list_of_expired_passports.csv
+* Send SIGUSR1 to process.
 
 ## License
 
