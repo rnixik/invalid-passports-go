@@ -1,6 +1,9 @@
 package main
 
-import "strconv"
+import (
+	"runtime"
+	"strconv"
+)
 
 type Database struct {
 	invalidPassports       map[uint16]map[uint32]bool
@@ -69,7 +72,8 @@ func (db *Database) addRecordToStoreBuffer(series string, number string) error {
 
 func (db *Database) flushBufferToStore() {
 	db.invalidPassports = db.invalidPassportsBuffer
-	db.invalidPassportsBuffer = make(map[uint16]map[uint32]bool, 1000000)
+	db.invalidPassportsBuffer = make(map[uint16]map[uint32]bool)
 	db.recordsNumber = db.recordsNumberBuffer
 	db.recordsNumberBuffer = 0
+	runtime.GC()
 }

@@ -29,14 +29,14 @@ Where `SERIES` is 4  digits, `NUMBER` is 6 digits of passport.
 
 * curl
 * bzip2
-* 7GB RAM minimum
+* 6GB RAM minimum
 
 #### Development:
 
 * curl
 * bzip2
 * go
-* 7GB RAM minimum
+* 6GB RAM minimum
 
 It consumes double amount of RAM to be able work while updating.
 
